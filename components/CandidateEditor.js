@@ -1,6 +1,8 @@
+import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
 import debounce from 'https://cdn.skypack.dev/debounce';
 import hbs from '../other/handlebars.js';
+import templateRepo from '../repositories/template.js';
 
 class CandidateEditor {
   constructor(props) { this.props = props }
@@ -9,13 +11,13 @@ class CandidateEditor {
   onAttach = () => { this.load(this.id) };
 
   load(x) {
-    this.data = JSON.parse(localStorage.getItem(`mrb:candidate:${x}`) || '{}');
+    this.data = candidateRepo.loadCandidate(x);
     this.updatePreview();
     d.update();
   }
 
   update = debounce(() => {
-    localStorage.setItem(`mrb:candidate:${this.id}`, JSON.stringify(this.data));
+    candidateRepo.saveCandidate(this.id, this.data);
     this.app.loadCandidates();
     this.updatePreview();
   }, 200);
@@ -25,10 +27,11 @@ class CandidateEditor {
     if (!template) { this.iframe.contentDocument.innerHTML = ''; return }
     this.iframe = d.html`<iframe class="flex-1 rounded">`;
     this.iframe.onload = () => {
-      let templateData = JSON.parse(localStorage.getItem(`mrb:template:${template}`) || '{}');
+      let templateData = templateRepo.loadTemplate(template);
       let doc = this.iframe.contentDocument;
       doc.open(); doc.write(hbs.compile(templateData.html)(this.data)); doc.close();
     };
+    d.update();
   }
 
   get experiences() {
@@ -82,7 +85,7 @@ class CandidateEditor {
           ${{ onChange: ev => { this.data.template = ev.target.value; this.update() } }}
         >
           ${d.usePlaceholderTag('option', d.map(() => this.app.templates, x => d.html`
-            <option ${{ value: x, selected: () => this.data.template === x }}>${d.text(() => this.app.templateName(x))}</option>
+            <option ${{ value: x, selected: () => this.data.template === x }}>${d.text(() => templateRepo.templateName(x))}</option>
           `))}
         </select>
       </div>

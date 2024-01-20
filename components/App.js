@@ -1,77 +1,46 @@
 import CandidateEditor from './CandidateEditor.js';
 import ConfirmationDialog from './ConfirmationDialog.js';
 import PromptDialog from './PromptDialog.js';
+import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
-import hrTemplate from '../builtins/hrTemplate.js';
-import warehouseTemplate from '../builtins/warehouseTemplate.js';
+import templateRepo from '../repositories/template.js';
 import { nanoid } from 'https://cdn.skypack.dev/nanoid';
 import { showModal } from '../other/util.js';
 
 class App {
   constructor() {
-    this.createBuiltins();
     this.loadTemplates();
     this.loadCandidates();
   }
 
-  createBuiltins() {
-    let keys = [...Object.keys(localStorage)];
-    let templates = keys.filter(x => x.startsWith('mrb:template:')).length;
-    if (!templates) {
-      localStorage.setItem(`mrb:template:builtin-1`, JSON.stringify(hrTemplate))
-      localStorage.setItem(`mrb:template:builtin-2`, JSON.stringify(warehouseTemplate))
-    }
-  }
-
-  loadTemplates() {
-    let keys = [...Object.keys(localStorage)];
-    this.templates = keys.filter(x => x.startsWith('mrb:template:')).map(x => x.split(':')[2]);
-    d.update();
-  }
-
-  loadCandidates() {
-    let keys = [...Object.keys(localStorage)];
-    this.candidates = keys.filter(x => x.startsWith('mrb:candidate:')).map(x => x.split(':')[2]);
-    d.update();
-  }
-
-  templateName = id => {
-    let data = JSON.parse(localStorage.getItem(`mrb:template:${id}`), '{}');
-    return data.name || null;
-  };
-
-  candidateName = id => {
-    let data = JSON.parse(localStorage.getItem(`mrb:candidate:${id}`) || '{}');
-    return [data.firstName, data.lastName].filter(Boolean).join(' ') || 'Unnamed Candidate';
-  };
+  loadTemplates() { this.templates = templateRepo.loadTemplates() }
+  loadCandidates() { this.candidates = candidateRepo.loadCandidates() }
 
   async newTemplate() {
     let [btn, detail] = await showModal(d.el(PromptDialog, { prompt: 'Template name:' }));
     if (btn !== 'ok') { return }
-    localStorage.setItem(`mrb:template:${nanoid()}`, JSON.stringify({ name: detail }));
+    templateRepo.saveTemplate(nanoid(), { name: detail, html: '' });
     this.loadTemplates();
   }
 
   async renameTemplate(x) {
-    let [btn, detail] = await showModal(d.el(PromptDialog, { prompt: 'Template name:', initialValue: this.templateName(x) }));
+    let [btn, detail] = await showModal(d.el(PromptDialog, { prompt: 'Template name:', initialValue: templateRepo.templateName(x) }));
     if (btn !== 'ok') { return }
-    let data = JSON.parse(localStorage.getItem(`mrb:template:${x}`) || '{}');
-    data.name = detail;
-    localStorage.setItem(`mrb:template:${x}`, JSON.stringify(data));
+    templateRepo.saveTemplate(x, { ...templateRepo.loadTemplate(x), name: detail });
     this.loadTemplates();
   }
 
   async deleteTemplate(x) {
     let [btn] = await showModal(d.el(ConfirmationDialog, { prompt: 'Delete template?' }));
     if (btn !== 'ok') { return }
-    localStorage.removeItem(`mrb:template:${x}`);
+    templateRepo.deleteTemplate(x);
     if (this.openEntity === `template:${x}`) { this.content = this.openEntity = null }
     this.loadTemplates();
   }
 
   newCandidate() {
     let id = nanoid();
-    localStorage.setItem(`mrb:candidate:${id}`, '{}');
+    candidateRepo.saveCandidate(id, {});
     this.loadCandidates();
     this.openCandidate(id)
   }
@@ -79,7 +48,7 @@ class App {
   async deleteCandidate(x) {
     let [btn] = await showModal(d.el(ConfirmationDialog, { prompt: 'Delete candidate?' }));
     if (btn !== 'ok') { return }
-    localStorage.removeItem(`mrb:candidate:${x}`);
+    candidateRepo.deleteCandidate(x);
     if (this.openEntity === `candidate:${x}`) { this.content = this.openEntity = null }
     this.loadCandidates();
   }
@@ -143,7 +112,7 @@ class App {
               onClick: ev => this.onTemplateClick(ev, x),
             }}>
               <div class="flex gap-2 items-center">
-                <i class="nf nf-cod-code"></i> ${d.text(() => this.templateName(x))}
+                <i class="nf nf-cod-code"></i> ${d.text(() => templateRepo.templateName(x))}
               </div>
               <div class="relative top-[-1px] flex gap-2">
                 <button class="nf nf-fa-pencil" ${{ onClick: () => this.renameTemplate(x) }}></button>
@@ -165,7 +134,7 @@ class App {
               onClick: ev => this.onCandidateClick(ev, x),
             }}>
               <div class="flex gap-2 items-center">
-                <i class="nf nf-fa-user"></i> ${d.text(() => this.candidateName(x))}
+                <i class="nf nf-fa-user"></i> ${d.text(() => candidateRepo.candidateName(x))}
               </div>
               <div class="relative top-[-1px] flex gap-2">
                 <button class="nf nf-fa-trash" ${{ onClick: () => this.deleteCandidate(x) }}></button>
