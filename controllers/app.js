@@ -47,8 +47,10 @@ class AppCtrl {
   }
 
   newCandidate() {
-    this.post('saveCandidate', nanoid(), { firstName: '', lastName: '', template: 'builtin-1', experiences: [], education: [], skills: [] });
+    let id = nanoid();
+    this.post('saveCandidate', id, { firstName: '', lastName: '', template: 'builtin-1', experiences: [], education: [], skills: [] });
     this.post('loadCandidates');
+    this.post('openCandidate', id)
   }
 
   deleteCandidate(x) {
