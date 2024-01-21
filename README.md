@@ -4,6 +4,8 @@
 
 Welcome to the Resume Builder Web App! This application is designed to simplify the process of creating and managing professional resumes. With an intuitive interface, users can select from various templates, edit them, and input candidate details to generate a customized resume. The app features live preview, automatic saving, and the ability to export resumes as PDFs.
 
+The research & development document can be found [here](devdoc.pdf).
+
 ## Features
 
 - **Template Management**: Users can choose from a variety of resume templates.
