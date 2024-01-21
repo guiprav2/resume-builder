@@ -38,6 +38,15 @@ $ cd resume-builder
 $ npx serve
 ```
 
+## Running tests
+
+To run core functionality testing, use:
+
+```sh
+$ npm install
+$ npx playwright test
+```
+
 ## Usage
 
 Once the application is running:

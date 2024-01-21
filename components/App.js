@@ -73,7 +73,7 @@ class App {
               <i class="nf nf-fa-folder"></i> Templates
             </div>
             <div class="relative top-[-1px] flex gap-2">
-              <button class="nf nf-fa-plus" ${{ onClick: () => this.newTemplate() }}></button>
+              <button class="nf nf-fa-plus new-template-btn" ${{ onClick: () => this.newTemplate() }}></button>
             </div>
           </div>
           ${d.map(() => appCtrl.templates, x => d.html`
@@ -95,7 +95,7 @@ class App {
               <i class="nf nf-fa-folder"></i> Candidates
             </div>
             <div class="relative top-[-1px] flex gap-2">
-              <button class="nf nf-fa-plus" ${{ onClick: () => appCtrl.post('newCandidate') }}></button>
+              <button class="nf nf-fa-plus new-candidate-btn" ${{ onClick: () => appCtrl.post('newCandidate') }}></button>
             </div>
           </div>
           ${d.map(() => appCtrl.candidates, x => d.html`

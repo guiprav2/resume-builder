@@ -1,0 +1,10 @@
+{
+  "name": "resume-builder",
+  "version": "1.0.0",
+  "author": "Gui Prá (gui@guiprav.com)",
+  "license": "AGPL-3.0+",
+  "devDependencies": {
+    "@playwright/test": "^1.41.1",
+    "@types/node": "^20.11.5"
+  }
+}
