@@ -13,11 +13,12 @@ class CandidateEditor {
 
   load(x) {
     this.data = candidateRepo.loadCandidate(x);
-    this.updatePreview();
+    this.update();
     d.update();
   }
 
   update = debounce(() => {
+    this.data.empty = Object.values({ ...this.data, template: null, empty: null }).every(x => Array.isArray(x) ? !x.length : !x);
     appCtrl.post('saveCandidate', this.id, this.data);
     this.updatePreview();
   }, 200);

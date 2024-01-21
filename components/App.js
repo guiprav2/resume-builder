@@ -78,7 +78,7 @@ class App {
           </div>
           ${d.map(() => appCtrl.templates, x => d.html`
             <a href="#" ${{
-              class: ['flex gap-2 justify-between items-center ml-3 px-3 py-1 rounded', () => this.openEntity === `template:${x}` && 'bg-black/25'],
+              class: ['flex gap-2 justify-between items-center ml-3 px-3 py-1 rounded', () => appCtrl.openEntity === `template:${x}` && 'bg-black/25'],
               onClick: ev => this.onTemplateClick(ev, x),
             }}>
               <div class="flex gap-2 items-center">
@@ -100,7 +100,7 @@ class App {
           </div>
           ${d.map(() => appCtrl.candidates, x => d.html`
             <a href="#" ${{
-              class: ['flex gap-2 justify-between items-center rounded px-3 py-1 ml-3', () => this.openEntity === `candidate:${x}` && 'bg-black/25'],
+              class: ['flex gap-2 justify-between items-center rounded px-3 py-1 ml-3', () => appCtrl.openEntity === `candidate:${x}` && 'bg-black/25'],
               onClick: ev => this.onCandidateClick(ev, x),
             }}>
               <div class="flex gap-2 items-center">

@@ -9,6 +9,12 @@ export default {
     <body class="min-h-screen sans bg-white">
         <div class="grid grid-cols-3 flex-1 rounded">
             <div class="col-span-2 p-6">
+                {{#if empty}}
+                    <div class="mt-[40vh] text-center">
+                        <div class="nf nf-fa-user font-5xl text-neutral-600"></div>
+                        <div class="mt-4 text-neutral-800">Enter candidate details to start</div>
+                    </div>
+                {{/if}}
                 <div class="flex flex-col justify-center h-40">
                     <div class="font-bold uppercase font-2xl">
                         {{firstName}} {{lastName}}

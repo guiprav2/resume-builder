@@ -10,7 +10,7 @@ class AppCtrl {
   }
 
   post(action, ...args) {
-    console.log('appCtrl.post:', action, args);
+    location.href.includes('debug=1') && console.log('appCtrl.post:', action, args);
     this[action](...args);
     d.update();
   }

@@ -6,15 +6,23 @@ export default {
         <link rel="stylesheet" href="other/preflight.css">
         <script src="other/windy.js"></script>
     </head>
-    <body class="min-h-screen sans bg-white">
-        <div class="flex-1 rounded bg-white">
+    <body class="sans bg-white">
+        <div class="min-h-screen flex-1 rounded bg-white">
             <div class="bg-[#8a9d6e] h-32 flex justify-center items-center">
                 <div class="font-3xl text-white">Warehouse Resume</div>
             </div>
+            {{#if empty}}
+                <div class="mt-32 text-center">
+                    <div class="nf nf-fa-user font-5xl text-neutral-600"></div>
+                    <div class="mt-4 text-neutral-800">Enter candidate details to start</div>
+                </div>
+            {{/if}}
             <div class="mt-8 p-4 grid grid-cols-3 gap-3 font-neutral-700">
                 <div class="col-span-2">
-                    <div class="uppercase font-bold">Career Objective</div>
-                    <div class="my-4">{{summary}}</div>
+                    {{#if summary}}
+                        <div class="uppercase font-bold">Career Objective</div>
+                        <div class="my-4">{{summary}}</div>
+                    {{/if}}
                     {{#if experiences.length}}
                         <div class="uppercase font-bold">Professional Experience</div>
                         {{#each experiences}}
@@ -30,10 +38,24 @@ export default {
                 </div>
                 <div class="font-sm">
                     <div class="mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="nf nf-fa-user"></div>
-                            <div>{{firstName}} {{lastName}}</div>
-                        </div>
+                        {{#if firstName}}
+                            <div class="flex items-center gap-3">
+                                <div class="nf nf-fa-user"></div>
+                                <div>{{firstName}} {{lastName}}</div>
+                            </div>
+                        {{/if}}
+                        {{#if headline}}
+                            <div class="flex items-center gap-3">
+                                <div class="nf nf-md-hexagon"></div>
+                                <div>{{headline}}</div>
+                            </div>
+                        {{/if}}
+                        {{#if location}}
+                            <div class="flex items-center gap-3">
+                                <div class="nf nf-oct-location"></div>
+                                <div>{{location}}</div>
+                            </div>
+                        {{/if}}
                         {{#if phone}}
                             <div class="flex items-center gap-3">
                                 <div class="nf nf-fa-phone"></div>
