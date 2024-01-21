@@ -1,6 +1,7 @@
 import CandidateEditor from './CandidateEditor.js';
 import ConfirmationDialog from './ConfirmationDialog.js';
 import PromptDialog from './PromptDialog.js';
+import TemplateEditor from './TemplateEditor.js';
 import appCtrl from '../controllers/app.js';
 import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
@@ -12,26 +13,9 @@ class App {
     d.effect(() => appCtrl.openEntity, x => {
       if (!x) { this.content = null; return }
       let [type, id] = x.split(':');
-
       switch (type) {
-        case 'template': {
-          this.content = d.html`<div class="flex-1">`;
-          let editor = ace.edit(this.content);
-          editor.setTheme('ace/theme/monokai');
-          editor.setFontSize('16px');
-          editor.session.setMode(`ace/mode/html`);
-          editor.session.setValue(templateRepo.loadTemplate(id).html || '');
-          editor.session.on('change', () => {
-            let data = templateRepo.loadTemplate(id);
-            data.html = editor.session.getValue();
-            appCtrl.post('saveTemplate', id, data);
-          });
-          break;
-        }
-
-        case 'candidate':
-          this.content = d.el(CandidateEditor, { id });
-          break;
+        case 'template': this.content = d.el(TemplateEditor, { id }); break;
+        case 'candidate': this.content = d.el(CandidateEditor, { id }); break;
       }
     });
   }
