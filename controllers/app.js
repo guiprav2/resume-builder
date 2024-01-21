@@ -15,15 +15,8 @@ class AppCtrl {
     d.update();
   }
 
-  loadTemplates() {
-    let keys = [...Object.keys(localStorage)];
-    this.templates = keys.filter(x => x.startsWith('mrb:template:')).map(x => x.split(':')[2]);
-  }
-
-  loadCandidates() {
-    let keys = [...Object.keys(localStorage)];
-    this.candidates = keys.filter(x => x.startsWith('mrb:candidate:')).map(x => x.split(':')[2]);
-  }
+  loadTemplates() { this.templates = templateRepo.loadTemplates() }
+  loadCandidates() { this.candidates = candidateRepo.loadCandidates() }
 
   saveTemplate(x, data) {
     templateRepo.saveTemplate(x, data);
