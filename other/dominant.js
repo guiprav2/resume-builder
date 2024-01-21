@@ -711,6 +711,20 @@ function usePlaceholderTag(name, value) {
   return { placeholderTag: name, value: value };
 }
 
+function effect(cond, fn) {
+  let lastValue = cond();
+  fn(lastValue);
+  d.update();
+
+  addEventListener('update', () => {
+    let value = cond();
+    if (value === lastValue) { return }
+    lastValue = value;
+    fn(value);
+    d.update();
+  });
+}
+
 function fromContext(n, k) {
   while (n) {
     if (n.context && n.context[k]) { return n.context[k] }
@@ -934,6 +948,7 @@ objAssign(exports, {
   portal: createPortalNode,
   html: html,
   usePlaceholderTag: usePlaceholderTag,
+  effect: effect,
 
   fromContext: fromContext,
 

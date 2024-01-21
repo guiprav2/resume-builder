@@ -1,3 +1,4 @@
+import appCtrl from '../controllers/app.js';
 import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
 import debounce from 'https://cdn.skypack.dev/debounce';
@@ -17,36 +18,19 @@ class CandidateEditor {
   }
 
   update = debounce(() => {
-    candidateRepo.saveCandidate(this.id, this.data);
-    this.app.loadCandidates();
+    appCtrl.post('saveCandidate', this.id, this.data);
     this.updatePreview();
   }, 200);
 
   updatePreview() {
-    let template = this.data.template || 'builtin-1';
-    if (!template) { this.iframe.contentDocument.innerHTML = ''; return }
+    if (!this.data.template) { this.iframe.contentDocument.innerHTML = ''; return }
     this.iframe = d.html`<iframe class="flex-1 rounded">`;
     this.iframe.onload = () => {
-      let templateData = templateRepo.loadTemplate(template);
+      let templateData = templateRepo.loadTemplate(this.data.template);
       let doc = this.iframe.contentDocument;
       doc.open(); doc.write(hbs.compile(templateData.html)(this.data)); doc.close();
     };
     d.update();
-  }
-
-  get experiences() {
-    this.data.experiences ??= [];
-    return this.data.experiences;
-  }
-
-  get education() {
-    this.data.education ??= [];
-    return this.data.education;
-  }
-
-  get skills() {
-    this.data.skills ??= [];
-    return this.data.skills;
   }
 
   render = () => d.html`
@@ -84,13 +68,13 @@ class CandidateEditor {
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 bg-white"
           ${{ onChange: ev => { this.data.template = ev.target.value; this.update() } }}
         >
-          ${d.usePlaceholderTag('option', d.map(() => this.app.templates, x => d.html`
+          ${d.usePlaceholderTag('option', d.map(() => appCtrl.templates, x => d.html`
             <option ${{ value: x, selected: () => this.data.template === x }}>${d.text(() => templateRepo.templateName(x))}</option>
           `))}
         </select>
       </div>
       <div class="font-bold">Experiences</div>
-      ${d.map(() => this.experiences, x => d.html`
+      ${d.map(() => this.data.experiences, x => d.html`
         <div class="grid grid-cols-2 gap-3 max-w-sm">
           ${this.renderInput({ name: 'title', placeholder: 'Title', data: x })}
           ${this.renderInput({ name: 'company', placeholder: 'Company', data: x })}
@@ -105,19 +89,19 @@ class CandidateEditor {
         </div>
         <button
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-          ${{ onClick: () => { this.experiences.splice(this.experiences.indexOf(x), 1); this.update() } }}
+          ${{ onClick: () => { this.data.experiences.splice(this.data.experiences.indexOf(x), 1); this.update() } }}
         >
           <i class="nf nf-fa-trash"></i> Delete
         </button>
       `)}
       <button
         class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-        ${{ onClick: () => { this.experiences.push({}); this.update() } }}
+        ${{ onClick: () => { this.data.experiences.push({}); this.update() } }}
       >
         <i class="nf nf-fa-plus"></i> Add
       </button>
       <div class="font-bold">Education</div>
-      ${d.map(() => this.education, x => d.html`
+      ${d.map(() => this.data.education, x => d.html`
         <div class="grid grid-cols-2 gap-3 max-w-sm">
           ${this.renderInput({ name: 'degree', placeholder: 'Degree', data: x })}
           ${this.renderInput({ name: 'major', placeholder: 'Major', data: x })}
@@ -128,30 +112,30 @@ class CandidateEditor {
         </div>
         <button
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-          ${{ onClick: () => { this.education.splice(this.education.indexOf(x), 1); this.update() } }}
+          ${{ onClick: () => { this.data.education.splice(this.data.education.indexOf(x), 1); this.update() } }}
         >
           <i class="nf nf-fa-trash"></i> Delete
         </button>
       `)}
       <button
         class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-        ${{ onClick: () => { this.education.push({}); this.update() } }}
+        ${{ onClick: () => { this.data.education.push({}); this.update() } }}
       >
         <i class="nf nf-fa-plus"></i> Add
       </button>
       <div class="font-bold">Skills</div>
-      ${d.map(() => this.skills, x => d.html`
+      ${d.map(() => this.data.skills, x => d.html`
         <div class="grid gap-3 max-w-sm grid-cols-3">
           ${this.renderInput({ name: 'name', placeholder: 'Skill', span: 2, data: x })}
           <div class="flex gap-3 items-center">
             ${this.renderInput({ name: 'score', placeholder: 'Score', data: x })}
-            <button class="nf nf-oct-x" ${{ onClick: () => { this.skills.splice(this.skills.indexOf(x), 1); this.update() } }}></button>
+            <button class="nf nf-oct-x" ${{ onClick: () => { this.data.skills.splice(this.data.skills.indexOf(x), 1); this.update() } }}></button>
           </div>
         </div>
       `)}
       <button
         class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-        ${{ onClick: () => { this.skills.push({}); this.update() } }}
+        ${{ onClick: () => { this.data.skills.push({}); this.update() } }}
       >
         <i class="nf nf-fa-plus"></i> Add
       </button>

@@ -1,87 +1,73 @@
 import CandidateEditor from './CandidateEditor.js';
 import ConfirmationDialog from './ConfirmationDialog.js';
 import PromptDialog from './PromptDialog.js';
+import appCtrl from '../controllers/app.js';
 import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
 import templateRepo from '../repositories/template.js';
-import { nanoid } from 'https://cdn.skypack.dev/nanoid';
 import { showModal } from '../other/util.js';
 
 class App {
   constructor() {
-    this.loadTemplates();
-    this.loadCandidates();
-  }
+    d.effect(() => appCtrl.openEntity, x => {
+      if (!x) { this.content = null; return }
+      let [type, id] = x.split(':');
 
-  loadTemplates() { this.templates = templateRepo.loadTemplates() }
-  loadCandidates() { this.candidates = candidateRepo.loadCandidates() }
+      switch (type) {
+        case 'template': {
+          this.content = d.html`<div class="flex-1">`;
+          let editor = ace.edit(this.content);
+          editor.setTheme('ace/theme/monokai');
+          editor.setFontSize('16px');
+          editor.session.setMode(`ace/mode/html`);
+          editor.session.setValue(templateRepo.loadTemplate(id).html || '');
+          editor.session.on('change', () => {
+            let data = templateRepo.loadTemplate(id);
+            data.html = editor.session.getValue();
+            appCtrl.post('saveTemplate', id, data);
+          });
+          break;
+        }
+
+        case 'candidate':
+          this.content = d.el(CandidateEditor, { id });
+          break;
+      }
+    });
+  }
 
   async newTemplate() {
     let [btn, detail] = await showModal(d.el(PromptDialog, { prompt: 'Template name:' }));
     if (btn !== 'ok') { return }
-    templateRepo.saveTemplate(nanoid(), { name: detail, html: '' });
-    this.loadTemplates();
+    appCtrl.post('newTemplate', detail);
   }
 
   async renameTemplate(x) {
     let [btn, detail] = await showModal(d.el(PromptDialog, { prompt: 'Template name:', initialValue: templateRepo.templateName(x) }));
     if (btn !== 'ok') { return }
-    templateRepo.saveTemplate(x, { ...templateRepo.loadTemplate(x), name: detail });
-    this.loadTemplates();
+    appCtrl.post('renameTemplate', x, detail);
   }
 
   async deleteTemplate(x) {
     let [btn] = await showModal(d.el(ConfirmationDialog, { prompt: 'Delete template?' }));
     if (btn !== 'ok') { return }
-    templateRepo.deleteTemplate(x);
-    if (this.openEntity === `template:${x}`) { this.content = this.openEntity = null }
-    this.loadTemplates();
-  }
-
-  newCandidate() {
-    let id = nanoid();
-    candidateRepo.saveCandidate(id, {});
-    this.loadCandidates();
-    this.openCandidate(id)
+    appCtrl.post('deleteTemplate', x);
   }
 
   async deleteCandidate(x) {
     let [btn] = await showModal(d.el(ConfirmationDialog, { prompt: 'Delete candidate?' }));
     if (btn !== 'ok') { return }
-    candidateRepo.deleteCandidate(x);
-    if (this.openEntity === `candidate:${x}`) { this.content = this.openEntity = null }
-    this.loadCandidates();
+    appCtrl.post('deleteCandidate', x);
   }
 
   onTemplateClick(ev, x) {
     if (ev.target.closest('button')) { return }
-    this.openTemplate(x);
-  }
-
-  openTemplate(x) {
-    this.content = d.html`<div class="flex-1">`;
-    let editor = ace.edit(this.content);
-    editor.setTheme('ace/theme/monokai');
-    editor.setFontSize('16px');
-    editor.session.setMode(`ace/mode/html`);
-    let data = JSON.parse(localStorage.getItem(`mrb:template:${x}`) || '{}');
-    editor.session.setValue(data.html || '');
-    editor.session.on('change', () => {
-      let data = JSON.parse(localStorage.getItem(`mrb:template:${x}`) || '{}');
-      data.html = editor.session.getValue();
-      localStorage.setItem(`mrb:template:${x}`, JSON.stringify(data));
-    });
-    this.openEntity = `template:${x}`;
+    appCtrl.post('openTemplate', x);
   }
 
   onCandidateClick(ev, x) {
     if (ev.target.closest('button')) { return }
-    this.openCandidate(x);
-  }
-
-  openCandidate(x) {
-    this.content = d.el(CandidateEditor, { app: this, id: x });
-    this.openEntity = `candidate:${x}`;
+    appCtrl.post('openCandidate', x);
   }
 
   render = () => d.html`
@@ -106,7 +92,7 @@ class App {
               <button class="nf nf-fa-plus" ${{ onClick: () => this.newTemplate() }}></button>
             </div>
           </div>
-          ${d.map(() => this.templates, x => d.html`
+          ${d.map(() => appCtrl.templates, x => d.html`
             <a href="#" ${{
               class: ['flex gap-2 justify-between items-center ml-3 px-3 py-1 rounded', () => this.openEntity === `template:${x}` && 'bg-black/25'],
               onClick: ev => this.onTemplateClick(ev, x),
@@ -125,10 +111,10 @@ class App {
               <i class="nf nf-fa-folder"></i> Candidates
             </div>
             <div class="relative top-[-1px] flex gap-2">
-              <button class="nf nf-fa-plus" ${{ onClick: () => this.newCandidate() }}></button>
+              <button class="nf nf-fa-plus" ${{ onClick: () => appCtrl.post('newCandidate') }}></button>
             </div>
           </div>
-          ${d.map(() => this.candidates, x => d.html`
+          ${d.map(() => appCtrl.candidates, x => d.html`
             <a href="#" ${{
               class: ['flex gap-2 justify-between items-center rounded px-3 py-1 ml-3', () => this.openEntity === `candidate:${x}` && 'bg-black/25'],
               onClick: ev => this.onCandidateClick(ev, x),
