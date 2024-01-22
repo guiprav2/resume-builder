@@ -6,32 +6,28 @@ import hbs from '../other/handlebars.js';
 import templateRepo from '../repositories/template.js';
 
 class CandidateEditor {
-  constructor(props) { this.props = props }
-  get app() { return this.props.app }
-  get id() { return this.props.id }
-  onAttach = () => { this.load(this.id) };
+  constructor(props) {
+    this.props = props;
 
-  load(x) {
-    this.data = candidateRepo.loadCandidate(x);
-    this.update();
-    d.update();
+    d.effect(() => JSON.stringify(this.data), debounce(() => {
+      this.post('saveCandidate', this.id, this.data);
+      this.iframe = this.data?.template ? this.renderFrame() : null;
+      d.update();
+    }, 200));
   }
 
-  update = debounce(() => {
-    this.data.empty = Object.values({ ...this.data, template: null, empty: null }).every(x => Array.isArray(x) ? !x.length : !x);
-    appCtrl.post('saveCandidate', this.id, this.data);
-    this.updatePreview();
-  }, 200);
+  get id() { return this.props.id }
+  onAttach = () => { this.data = candidateRepo.loadCandidate(this.id) };
 
-  updatePreview() {
-    if (!this.data.template) { this.iframe.contentDocument.innerHTML = ''; return }
-    this.iframe = d.html`<iframe class="flex-1 rounded">`;
-    this.iframe.onload = () => {
+  renderFrame() {
+    let iframe = d.html`<iframe class="flex-1 rounded">`;
+    iframe.onload = () => {
       let templateData = templateRepo.loadTemplate(this.data.template);
       let doc = this.iframe.contentDocument;
-      doc.open(); doc.write(hbs.compile(templateData.html)(this.data)); doc.close();
+      let empty = Object.values({ ...this.data, template: null }).every(x => Array.isArray(x) ? !x.length : !x);
+      doc.open(); doc.write(hbs.compile(templateData.html)({ ...this.data, empty })); doc.close();
     };
-    d.update();
+    return iframe;
   }
 
   render = () => d.html`
@@ -40,7 +36,7 @@ class CandidateEditor {
       <div class="flex-1 flex flex-col gap-3 p-4 pl-2">
         <div class="flex justify-between">
           <span class="font-bold">Preview</span>
-          <button class="rounded border border-black/25 px-3 font-sm" ${{ onClick: () => this.iframe.contentWindow.print() }}>
+          <button class="rounded border border-black/25 px-3 font-sm" ${{ onClick: () => this.iframe.contentWindow.print(), disabled: () => !this.iframe }}>
             <i class="nf nf-fa-cloud_download"></i> Print or save as PDF
           </button>
         </div>
@@ -63,11 +59,11 @@ class CandidateEditor {
         <textarea
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 h-24"
           placeholder="Summary"
-          ${{ value: d.binding({ get: () => this.data.summary, set: x => { this.data.summary = x; this.update() } }), }}
+          ${{ value: d.binding({ get: () => this.data.summary, set: x => this.data.summary = x }), }}
         ></textarea>
         <select
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 bg-white"
-          ${{ onChange: ev => { this.data.template = ev.target.value; this.update() } }}
+          ${{ onChange: ev => this.data.template = ev.target.value }}
         >
           ${d.usePlaceholderTag('option', d.map(() => appCtrl.templates, x => d.html`
             <option ${{ value: x, selected: () => this.data.template === x }}>${d.text(() => templateRepo.templateName(x))}</option>
@@ -85,19 +81,19 @@ class CandidateEditor {
           <textarea
             class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 h-24"
             placeholder="Description"
-            ${{ value: d.binding({ get: () => x.description, set: y => { x.description = y; this.update() } }), }}
+            ${{ value: d.binding({ get: () => x.description, set: y => x.description = y }), }}
           ></textarea>
         </div>
         <button
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-          ${{ onClick: () => { this.data.experiences.splice(this.data.experiences.indexOf(x), 1); this.update() } }}
+          ${{ onClick: () => this.data.experiences.splice(this.data.experiences.indexOf(x), 1) }}
         >
           <i class="nf nf-fa-trash"></i> Delete
         </button>
       `)}
       <button
         class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-        ${{ onClick: () => { this.data.experiences.push({}); this.update() } }}
+        ${{ onClick: () => this.data.experiences.push({}) }}
       >
         <i class="nf nf-fa-plus"></i> Add
       </button>
@@ -113,14 +109,14 @@ class CandidateEditor {
         </div>
         <button
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-          ${{ onClick: () => { this.data.education.splice(this.data.education.indexOf(x), 1); this.update() } }}
+          ${{ onClick: () => this.data.education.splice(this.data.education.indexOf(x), 1) }}
         >
           <i class="nf nf-fa-trash"></i> Delete
         </button>
       `)}
       <button
         class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-        ${{ onClick: () => { this.data.education.push({}); this.update() } }}
+        ${{ onClick: () => this.data.education.push({}) }}
       >
         <i class="nf nf-fa-plus"></i> Add
       </button>
@@ -130,13 +126,13 @@ class CandidateEditor {
           ${this.renderInput({ name: 'name', placeholder: 'Skill', span: 2, data: x })}
           <div class="flex gap-3 items-center">
             ${this.renderInput({ name: 'score', placeholder: 'Score', data: x })}
-            <button class="nf nf-oct-x" ${{ onClick: () => { this.data.skills.splice(this.data.skills.indexOf(x), 1); this.update() } }}></button>
+            <button class="nf nf-oct-x" ${{ onClick: () => this.data.skills.splice(this.data.skills.indexOf(x), 1) }}></button>
           </div>
         </div>
       `)}
       <button
         class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 flex items-center justify-center gap-2"
-        ${{ onClick: () => { this.data.skills.push({}); this.update() } }}
+        ${{ onClick: () => this.data.skills.push({}) }}
       >
         <i class="nf nf-fa-plus"></i> Add
       </button>
@@ -147,7 +143,7 @@ class CandidateEditor {
     <input ${{
       class: `w-full rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-${span}`,
       placeholder,
-      value: d.binding({ get: () => (data || this.data)[name], set: x => { (data || this.data)[name] = x; this.update() } }),
+      value: d.binding({ get: () => (data || this.data)[name], set: x => (data || this.data)[name] = x }),
      }}>
   `;
 }
