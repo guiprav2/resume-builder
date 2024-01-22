@@ -31,7 +31,7 @@ class AppCtrl {
   }
 
   renameTemplate(x, name) {
-    this.post('saveTemplate', x, { ...this.loadTemplate(x), name });
+    this.post('saveTemplate', x, { ...templateRepo.loadTemplate(x), name });
     this.post('loadTemplates');
   }
 
