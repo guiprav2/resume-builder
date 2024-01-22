@@ -16,10 +16,7 @@ class App {
     d.effect(() => this.state.openEntity, x => {
       if (!x) { this.content = null; return }
       let [type, id] = x.split(':');
-      switch (type) {
-        case 'template': this.content = d.el(TemplateEditor, { id }); break;
-        case 'candidate': this.content = d.el(CandidateEditor, { id }); break;
-      }
+      this.content = d.el({ template: TemplateEditor, candidate: CandidateEditor }[type], { id });
     });
   }
 
