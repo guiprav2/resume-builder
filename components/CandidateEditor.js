@@ -1,13 +1,15 @@
-import appCtrl from '../controllers/app.js';
 import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
 import debounce from 'https://cdn.skypack.dev/debounce';
 import hbs from '../other/handlebars.js';
 import templateRepo from '../repositories/template.js';
+import { useAppCtrl } from '../controllers/App.js';
 
 class CandidateEditor {
   constructor(props) {
     this.props = props;
+    let [state, post] = useAppCtrl();
+    Object.assign(this, { state, post });
 
     d.effect(() => JSON.stringify(this.data), debounce(() => {
       this.post('saveCandidate', this.id, this.data);
@@ -65,7 +67,7 @@ class CandidateEditor {
           class="rounded border-black/25 border px-3 font-sm outline-blue-500 focus:outline py-1 col-span-2 bg-white"
           ${{ onChange: ev => this.data.template = ev.target.value }}
         >
-          ${d.usePlaceholderTag('option', d.map(() => appCtrl.templates, x => d.html`
+          ${d.usePlaceholderTag('option', d.map(() => this.state.templates, x => d.html`
             <option ${{ value: x, selected: () => this.data.template === x }}>${d.text(() => templateRepo.templateName(x))}</option>
           `))}
         </select>

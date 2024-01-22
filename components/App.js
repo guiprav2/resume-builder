@@ -2,15 +2,18 @@ import CandidateEditor from './CandidateEditor.js';
 import ConfirmationDialog from './ConfirmationDialog.js';
 import PromptDialog from './PromptDialog.js';
 import TemplateEditor from './TemplateEditor.js';
-import appCtrl from '../controllers/app.js';
 import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
 import templateRepo from '../repositories/template.js';
 import { showModal } from '../other/util.js';
+import { useAppCtrl } from '../controllers/App.js';
 
 class App {
   constructor() {
-    d.effect(() => appCtrl.openEntity, x => {
+    let [state, post] = useAppCtrl();
+    Object.assign(this, { state, post });
+
+    d.effect(() => this.state.openEntity, x => {
       if (!x) { this.content = null; return }
       let [type, id] = x.split(':');
       switch (type) {
@@ -23,35 +26,35 @@ class App {
   async newTemplate() {
     let [btn, detail] = await showModal(d.el(PromptDialog, { prompt: 'Template name:' }));
     if (btn !== 'ok') { return }
-    appCtrl.post('newTemplate', detail);
+    this.post('newTemplate', detail);
   }
 
   async renameTemplate(x) {
     let [btn, detail] = await showModal(d.el(PromptDialog, { prompt: 'Template name:', initialValue: templateRepo.templateName(x) }));
     if (btn !== 'ok') { return }
-    appCtrl.post('renameTemplate', x, detail);
+    this.post('renameTemplate', x, detail);
   }
 
   async deleteTemplate(x) {
     let [btn] = await showModal(d.el(ConfirmationDialog, { prompt: 'Delete template?' }));
     if (btn !== 'ok') { return }
-    appCtrl.post('deleteTemplate', x);
+    this.post('deleteTemplate', x);
   }
 
   async deleteCandidate(x) {
     let [btn] = await showModal(d.el(ConfirmationDialog, { prompt: 'Delete candidate?' }));
     if (btn !== 'ok') { return }
-    appCtrl.post('deleteCandidate', x);
+    this.post('deleteCandidate', x);
   }
 
   onTemplateClick(ev, x) {
     if (ev.target.closest('button')) { return }
-    appCtrl.post('openTemplate', x);
+    this.post('openTemplate', x);
   }
 
   onCandidateClick(ev, x) {
     if (ev.target.closest('button')) { return }
-    appCtrl.post('openCandidate', x);
+    this.post('openCandidate', x);
   }
 
   render = () => d.html`
@@ -76,9 +79,9 @@ class App {
               <button class="nf nf-fa-plus new-template-btn" ${{ onClick: () => this.newTemplate() }}></button>
             </div>
           </div>
-          ${d.map(() => appCtrl.templates, x => d.html`
+          ${d.map(() => this.state.templates, x => d.html`
             <a href="#" ${{
-              class: ['flex gap-2 justify-between items-center ml-3 px-3 py-1 rounded', () => appCtrl.openEntity === `template:${x}` && 'bg-black/25'],
+              class: ['flex gap-2 justify-between items-center ml-3 px-3 py-1 rounded', () => this.state.openEntity === `template:${x}` && 'bg-black/25'],
               onClick: ev => this.onTemplateClick(ev, x),
             }}>
               <div class="flex gap-2 items-center">
@@ -95,12 +98,12 @@ class App {
               <i class="nf nf-fa-folder"></i> Candidates
             </div>
             <div class="relative top-[-1px] flex gap-2">
-              <button class="nf nf-fa-plus new-candidate-btn" ${{ onClick: () => appCtrl.post('newCandidate') }}></button>
+              <button class="nf nf-fa-plus new-candidate-btn" ${{ onClick: () => this.post('newCandidate') }}></button>
             </div>
           </div>
-          ${d.map(() => appCtrl.candidates, x => d.html`
+          ${d.map(() => this.state.candidates, x => d.html`
             <a href="#" ${{
-              class: ['flex gap-2 justify-between items-center rounded px-3 py-1 ml-3', () => appCtrl.openEntity === `candidate:${x}` && 'bg-black/25'],
+              class: ['flex gap-2 justify-between items-center rounded px-3 py-1 ml-3', () => this.state.openEntity === `candidate:${x}` && 'bg-black/25'],
               onClick: ev => this.onCandidateClick(ev, x),
             }}>
               <div class="flex gap-2 items-center">

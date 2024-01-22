@@ -1,8 +1,12 @@
-import appCtrl from '../controllers/app.js';
 import templateRepo from '../repositories/template.js';
+import { useAppCtrl } from '../controllers/App.js';
 
 class TemplateEditor {
-  constructor(props) { this.props = props }
+  constructor(props) {
+    this.props = props;
+    this.post = useAppCtrl()[1];
+  }
+
   get id() { return this.props.id }
 
   onAttach = () => {
@@ -14,7 +18,7 @@ class TemplateEditor {
     editor.session.on('change', () => {
       let data = templateRepo.loadTemplate(this.id);
       data.html = editor.session.getValue();
-      appCtrl.post('saveTemplate', this.id, data);
+      this.post('saveTemplate', this.id, data);
     });
   };
 

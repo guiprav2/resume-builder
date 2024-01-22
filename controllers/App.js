@@ -4,19 +4,21 @@ import templateRepo from '../repositories/template.js';
 import { nanoid } from 'https://cdn.skypack.dev/nanoid';
 
 class AppCtrl {
+  state = {};
+
   constructor() {
     this.post('loadTemplates');
     this.post('loadCandidates');
   }
 
-  post(action, ...args) {
+  post = (action, ...args) => {
     location.href.includes('debug=1') && console.log('appCtrl.post:', action, args);
     this[action](...args);
     d.update();
-  }
+  };
 
-  loadTemplates() { this.templates = templateRepo.loadTemplates() }
-  loadCandidates() { this.candidates = candidateRepo.loadCandidates() }
+  loadTemplates() { this.state.templates = templateRepo.loadTemplates() }
+  loadCandidates() { this.state.candidates = candidateRepo.loadCandidates() }
 
   saveTemplate(x, data) {
     templateRepo.saveTemplate(x, data);
@@ -35,11 +37,11 @@ class AppCtrl {
 
   deleteTemplate(x) {
     templateRepo.deleteTemplate(x);
-    if (this.openEntity === `template:${x}`) { this.openEntity = null }
+    if (this.state.openEntity === `template:${x}`) { this.state.openEntity = null }
     this.post('loadTemplates');
   }
 
-  openTemplate(x) { this.openEntity = `template:${x}` }
+  openTemplate(x) { this.state.openEntity = `template:${x}` }
 
   saveCandidate(x, data) {
     candidateRepo.saveCandidate(x, data);
@@ -55,11 +57,13 @@ class AppCtrl {
 
   deleteCandidate(x) {
     candidateRepo.deleteCandidate(x);
-    if (this.openEntity === `candidate:${x}`) { this.openEntity = null }
+    if (this.state.openEntity === `candidate:${x}`) { this.state.openEntity = null }
     this.post('loadCandidates');
   }
 
-  openCandidate(x) { this.openEntity = `candidate:${x}` }
+  openCandidate(x) { this.state.openEntity = `candidate:${x}` }
 }
 
-export default new AppCtrl();
+let appCtrl = new AppCtrl();
+function useAppCtrl() { return [appCtrl.state, appCtrl.post] }
+export { useAppCtrl };
