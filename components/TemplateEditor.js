@@ -1,5 +1,5 @@
 import templateRepo from '../repositories/template.js';
-import { useAppCtrl } from '../controllers/App.js';
+import { useAppCtrl } from '../controllers/AppCtrl.js';
 
 class TemplateEditor {
   constructor(props) {

@@ -6,7 +6,7 @@ import candidateRepo from '../repositories/candidate.js';
 import d from '../other/dominant.js';
 import templateRepo from '../repositories/template.js';
 import { showModal } from '../other/util.js';
-import { useAppCtrl } from '../controllers/App.js';
+import { useAppCtrl } from '../controllers/AppCtrl.js';
 
 class App {
   constructor() {

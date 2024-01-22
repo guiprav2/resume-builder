@@ -3,7 +3,7 @@ import d from '../other/dominant.js';
 import debounce from 'https://cdn.skypack.dev/debounce';
 import hbs from '../other/handlebars.js';
 import templateRepo from '../repositories/template.js';
-import { useAppCtrl } from '../controllers/App.js';
+import { useAppCtrl } from '../controllers/AppCtrl.js';
 
 class CandidateEditor {
   constructor(props) {
